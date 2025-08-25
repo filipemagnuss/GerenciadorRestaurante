@@ -26,3 +26,20 @@ export const createAdmin = async (username, password) => {
   const res = await axios.post(`${API_URL}/auth/register`, { username, password });
   return res.data;
 };
+
+  export const deleteProduct = async (token, id) => {
+  const res = await axios.delete(`${API_URL}/products/${id}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return res.data;
+};
+
+export const updateProduct = async (token, id, product) => {
+  const res = await axios.put(`${API_URL}/products/${id}`, product, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return res.data;
+};
+
+
+
