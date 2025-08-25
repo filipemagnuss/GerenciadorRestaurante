@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getProducts } from '../api';
+import { getProducts } from '../api/api';
 
 export default function ProductList() {
   const [products, setProducts] = useState([]);

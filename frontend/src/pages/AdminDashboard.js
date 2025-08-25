@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getProducts, addProduct } from '../api';
+import { getProducts, addProduct } from '../api/api';
 import { useNavigate } from 'react-router-dom';
 
 export default function AdminDashboard() {

@@ -165,6 +165,4 @@ C:\Users\Filipe Hahn Magnus\Documents\Gerenciador de Pedidos\backend\obj\Debug\n
 C:\Users\Filipe Hahn Magnus\Documents\Gerenciador de Pedidos\backend\bin\Debug\net9.0\Swashbuckle.AspNetCore.Swagger.dll
 C:\Users\Filipe Hahn Magnus\Documents\Gerenciador de Pedidos\backend\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerGen.dll
 C:\Users\Filipe Hahn Magnus\Documents\Gerenciador de Pedidos\backend\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerUI.dll
-C:\Users\Filipe Hahn Magnus\Documents\Gerenciador de Pedidos\backend\bin\Debug\net9.0\frontend\package-lock.json
-C:\Users\Filipe Hahn Magnus\Documents\Gerenciador de Pedidos\backend\bin\Debug\net9.0\frontend\package.json
-C:\Users\Filipe Hahn Magnus\Documents\Gerenciador de Pedidos\backend\bin\Debug\net9.0\frontend\public\manifest.json
+C:\Users\Filipe Hahn Magnus\Documents\Gerenciador de Pedidos\backend\obj\Debug\net9.0\backend.sourcelink.json

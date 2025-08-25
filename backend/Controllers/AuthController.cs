@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using backend.Data;
+using backend.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -27,6 +29,12 @@ namespace backend.Controllers
             public string Password { get; set; } = default!;
         }
 
+        public class RegisterRequest
+        {
+            public string Username { get; set; } = default!;
+            public string Password { get; set; } = default!;
+        }
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest req)
         {
@@ -39,8 +47,8 @@ namespace backend.Controllers
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, user.Role)
+                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, user.Username),
+                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, user.Role)
             };
 
             var token = new JwtSecurityToken(
@@ -52,6 +60,26 @@ namespace backend.Controllers
             );
 
             return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
+        }
+
+        // Novo endpoint para criar admin
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequest req)
+        {
+            if (await _db.Users.AnyAsync(u => u.Username == req.Username))
+                return BadRequest("Usuário já existe.");
+
+            var user = new User
+            {
+                Username = req.Username,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(req.Password),
+                Role = "Admin" // cria sempre como admin
+            };
+
+            _db.Users.Add(user);
+            await _db.SaveChangesAsync();
+
+            return Ok(new { message = "Administrador criado com sucesso!" });
         }
     }
 }

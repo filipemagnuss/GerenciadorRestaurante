@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+
 const API_URL = 'http://localhost:5197/api'; // ajuste para sua porta do backend
 
 export const login = async (username, password) => {
@@ -18,5 +19,10 @@ export const addProduct = async (token, product) => {
   const res = await axios.post(`${API_URL}/products`, product, {
     headers: { Authorization: `Bearer ${token}` }
   });
+  return res.data;
+};
+
+export const createAdmin = async (username, password) => {
+  const res = await axios.post(`${API_URL}/auth/register`, { username, password });
   return res.data;
 };
