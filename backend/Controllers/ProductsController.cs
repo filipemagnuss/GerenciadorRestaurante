@@ -1,63 +1,143 @@
-using Microsoft.AspNetCore.Mvc;
 using backend.Data;
+using backend.Dtos; // Importante: Adicionar o using para os DTOs
 using backend.Models;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")] // Apenas Admins podem gerenciar produtos
     public class ProductsController : ControllerBase
     {
         private readonly AppDbContext _db;
-        public ProductsController(AppDbContext db) => _db = db;
 
+        public ProductsController(AppDbContext db)
+        {
+            _db = db;
+        }
+
+        // GET: api/products
         [HttpGet]
-        [AllowAnonymous] // listar cardápio sem login
-        public async Task<IEnumerable<Product>> GetAll() =>
-            await _db.Products.AsNoTracking().ToListAsync();
-
-        [HttpGet("{id:int}")]
-        public async Task<ActionResult<Product>> GetById(int id)
+        public async Task<ActionResult<IEnumerable<ProductDto>>> GetAll()
         {
-            var p = await _db.Products.FindAsync(id);
-            return p is null ? NotFound() : Ok(p);
+            return await _db.Products
+                .Include(p => p.Category)
+                .Select(p => new ProductDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Price = p.Price,
+                    IsPromotion = p.IsPromotion,
+                    Category = p.Category == null ? null : new CategoryDto
+                    {
+                        Id = p.Category.Id,
+                        Name = p.Category.Name
+                    }
+                })
+                .AsNoTracking()
+                .ToListAsync();
         }
 
+        // GET: api/products/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ProductDto>> GetProduct(int id)
+        {
+            var productDto = await _db.Products
+                .Where(p => p.Id == id)
+                .Include(p => p.Category)
+                .Select(p => new ProductDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Price = p.Price,
+                    IsPromotion = p.IsPromotion,
+                    Category = p.Category == null ? null : new CategoryDto
+                    {
+                        Id = p.Category.Id,
+                        Name = p.Category.Name
+                    }
+                })
+                .FirstOrDefaultAsync();
+
+            if (productDto == null)
+            {
+                return NotFound();
+            }
+
+            return productDto;
+        }
+
+        // POST: api/products
+        // Cria um novo produto
         [HttpPost]
-        public async Task<ActionResult<Product>> Create(Product product)
+        public async Task<ActionResult<ProductDto>> CreateProduct([FromBody] CreateOrUpdateProductDto productDto)
         {
-            _db.Products.Add(product);
+            // Mapeia o DTO de entrada para o modelo do banco de dados
+            var newProduct = new Product
+            {
+                Name = productDto.Name,
+                Description = productDto.Description,
+                Price = productDto.Price,
+                IsPromotion = productDto.IsPromotion,
+                CategoryId = productDto.CategoryId
+            };
+
+            _db.Products.Add(newProduct);
             await _db.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
+            
+            // Recarrega o produto com a categoria para retornar o DTO completo
+            var productResultDto = await GetProduct(newProduct.Id);
+
+            return CreatedAtAction(nameof(GetProduct), new { id = newProduct.Id }, productResultDto.Value);
         }
 
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, Product product)
+        // PUT: api/products/5
+        // Atualiza um produto existente
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateProduct(int id, [FromBody] CreateOrUpdateProductDto productDto)
         {
-            var p = await _db.Products.FindAsync(id);
-            if (p is null) return NotFound();
+            var productFromDb = await _db.Products.FindAsync(id);
 
-            p.Name = product.Name;
-            p.Description = product.Description;
-            p.Price = product.Price;
-            p.Category = product.Category;
-            p.IsPromotion = product.IsPromotion;
+            if (productFromDb == null)
+            {
+                return NotFound("Produto não encontrado.");
+            }
+
+            // Atualiza as propriedades do produto encontrado com os dados do DTO
+            productFromDb.Name = productDto.Name;
+            productFromDb.Description = productDto.Description;
+            productFromDb.Price = productDto.Price;
+            productFromDb.IsPromotion = productDto.IsPromotion;
+            productFromDb.CategoryId = productDto.CategoryId;
 
             await _db.SaveChangesAsync();
-            return NoContent();
+
+            return NoContent(); // Resposta padrão para um update bem-sucedido
         }
 
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+        // DELETE: api/products/5
+        // Deleta um produto
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteProduct(int id)
         {
-            var p = await _db.Products.FindAsync(id);
-            if (p is null) return NotFound();
-            _db.Products.Remove(p);
+            var product = await _db.Products.FindAsync(id);
+            if (product == null)
+            {
+                return NotFound("Produto não encontrado.");
+            }
+
+            _db.Products.Remove(product);
             await _db.SaveChangesAsync();
-            return NoContent();
+
+            return NoContent(); // Resposta padrão para um delete bem-sucedido
         }
     }
 }

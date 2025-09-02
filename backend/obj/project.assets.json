@@ -4036,19 +4036,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Filipe Hahn Magnus\\.nuget\\packages\\": {}
+    "/Users/kauemagnus/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Filipe Hahn Magnus\\Documents\\Gerenciador de Pedidos\\backend\\backend.csproj",
+      "projectUniqueName": "/Users/kauemagnus/Documents/LanchoneteGerenciador/GerenciadorRestaurante/backend/backend.csproj",
       "projectName": "backend",
-      "projectPath": "C:\\Users\\Filipe Hahn Magnus\\Documents\\Gerenciador de Pedidos\\backend\\backend.csproj",
-      "packagesPath": "C:\\Users\\Filipe Hahn Magnus\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Filipe Hahn Magnus\\Documents\\Gerenciador de Pedidos\\backend\\obj\\",
+      "projectPath": "/Users/kauemagnus/Documents/LanchoneteGerenciador/GerenciadorRestaurante/backend/backend.csproj",
+      "packagesPath": "/Users/kauemagnus/.nuget/packages/",
+      "outputPath": "/Users/kauemagnus/Documents/LanchoneteGerenciador/GerenciadorRestaurante/backend/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\Filipe Hahn Magnus\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "/Users/kauemagnus/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net9.0"
@@ -4128,7 +4128,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.304/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

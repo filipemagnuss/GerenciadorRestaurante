@@ -16,38 +16,72 @@ namespace backend.Controllers
 
         public class CreateOrderRequest
         {
-            public List<int> ProductIds { get; set; } = new();
+            public class OrderItemRequest
+            {
+                public int ProductId { get; set; }
+                public int Quantity { get; set; }
+            }
+
+            public List<OrderItemRequest> Items { get; set; } = new();
             public string? CustomerName { get; set; }
         }
 
         [HttpGet]
         public async Task<IEnumerable<Order>> GetAll() =>
             await _db.Orders
-                     .Include(o => o.Items)
+                     .Include(o => o.OrderItems)
                      .ThenInclude(i => i.Product)
-                     .OrderByDescending(o => o.CreatedAt)
+                     .OrderByDescending(o => o.OrderDate)
                      .AsNoTracking()
                      .ToListAsync();
 
         [HttpPost]
         public async Task<ActionResult<Order>> Create([FromBody] CreateOrderRequest req)
         {
-            var products = await _db.Products.Where(p => req.ProductIds.Contains(p.Id)).ToListAsync();
-            if (products.Count == 0) return BadRequest("Nenhum produto válido informado.");
+            if (req.Items == null || !req.Items.Any())
+            {
+                return BadRequest("O pedido precisa ter pelo menos um item.");
+            }
+
+            var requestedProductIds = req.Items.Select(i => i.ProductId);
+            var productsFromDb = await _db.Products
+                                    .Where(p => requestedProductIds.Contains(p.Id))
+                                    .ToDictionaryAsync(p => p.Id);
+
+            if (productsFromDb.Count != requestedProductIds.Count())
+            {
+                return BadRequest("Um ou mais produtos informados são inválidos.");
+            }
+
+            var orderItems = req.Items.Select(itemReq =>
+            {
+                var product = productsFromDb[itemReq.ProductId];
+                return new OrderItem
+                {
+                    ProductId = product.Id,
+                    Quantity = itemReq.Quantity,
+                    UnitPrice = product.Price
+                };
+            }).ToList();
 
             var order = new Order
             {
                 CustomerName = string.IsNullOrWhiteSpace(req.CustomerName) ? "Cliente" : req.CustomerName!,
-                Status = "Pendente",
-                CreatedAt = DateTime.UtcNow,
-                Items = products.Select(p => new OrderItem { ProductId = p.Id, Quantity = 1 }).ToList()
+                Status = "Recebido",
+                OrderDate = DateTime.UtcNow,
+                OrderItems = orderItems,
+                TotalPrice = orderItems.Sum(oi => oi.UnitPrice * oi.Quantity)
             };
 
             _db.Orders.Add(order);
             await _db.SaveChangesAsync();
 
-            await _db.Entry(order).Collection(o => o.Items).Query().Include(i => i.Product).LoadAsync();
-            return CreatedAtAction(nameof(GetAll), new { id = order.Id }, order);
+            var createdOrder = await _db.Orders
+                                    .Include(o => o.OrderItems)
+                                    .ThenInclude(oi => oi.Product)
+                                    .FirstOrDefaultAsync(o => o.Id == order.Id);
+
+            return CreatedAtAction(nameof(GetAll), new { id = order.Id }, createdOrder);
         }
 
         [HttpPut("{id:int}/ready")]

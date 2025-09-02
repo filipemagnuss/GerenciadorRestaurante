@@ -1,24 +1,14 @@
-namespace backend.Models
+using System.ComponentModel.DataAnnotations.Schema;
+
+public class Order
 {
-    public class Order
-    {
-        public int Id { get; set; }
-        public string CustomerName { get; set; } = "Cliente";
-        public string Status { get; set; } = "Pendente";
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public int Id { get; set; }
+    public string CustomerName { get; set; } = string.Empty; 
+    public DateTime OrderDate { get; set; } = DateTime.UtcNow;
+    public string Status { get; set; } = "Recebido";
 
-        public List<OrderItem> Items { get; set; } = new();
-    }
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal TotalPrice { get; set; }
 
-    public class OrderItem
-    {
-        public int Id { get; set; }
-        public int Quantity { get; set; } = 1;
-
-        public int ProductId { get; set; }
-        public Product Product { get; set; } = null!;
-
-        public int OrderId { get; set; }
-        public Order Order { get; set; } = null!;
-    }
+    public List<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 }
