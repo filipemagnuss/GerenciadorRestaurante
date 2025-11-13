@@ -1,0 +1,12 @@
+# Backend (.NET)
+**/bin/
+**/obj/
+*.db
+*.db-shm
+*.db-wal
+
+# Frontend (Node)
+node_modules/
+dist/
+.env
+.env.local 
