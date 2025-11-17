@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 
 const BASE_URL = 'http://localhost:5197';
 
@@ -9,8 +10,10 @@ export default function AtendenteMenu() {
   const [error, setError] = useState('');
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  
+  const navigate = useNavigate();
 
- useEffect(() => {
+  useEffect(() => {
     const fetchMenuData = async () => {
       
       try {
@@ -134,6 +137,19 @@ export default function AtendenteMenu() {
     <div className="flex min-h-screen bg-[#F0F5F0] font-inter">
       <div className={`flex-1 transition-all duration-300 ease-in-out ${isCartOpen ? 'mr-80' : 'mr-0'}`}>
         <div className="max-w-6xl mx-auto p-8">
+          
+          <div className="mb-4">
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center text-[#588157] font-semibold hover:text-[#4A724A] transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Voltar para Home
+            </button>
+          </div>
+          
           <h1 className="text-4xl font-bold text-center mb-12 text-[#588157]">
             Cardápio
           </h1>
@@ -165,11 +181,6 @@ export default function AtendenteMenu() {
                         <span className="text-2xl font-bold text-[#588157]">
                           R$ {product.price.toFixed(2)}
                         </span>
-                        {product.isPromotion && (
-                          <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                            Promoção
-                          </span>
-                        )}
                         <button
                           onClick={() => handleAddToCart(product)}
                           className="px-4 py-2 bg-[#588157] text-white rounded-full hover:bg-[#4A724A] transition"
@@ -247,11 +258,16 @@ export default function AtendenteMenu() {
           </div>
         </div>
       </div>
-      <button 
+        <button 
+
         onClick={() => setIsCartOpen(!isCartOpen)} 
+
         className={`fixed bottom-4 right-4 p-4 rounded-full bg-[#588157] text-white shadow-lg transition-transform hover:scale-110 z-30 ${isCartOpen ? 'hidden' : 'block'}`}
+
       >
+
         <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+
       </button>
     </div>
   );

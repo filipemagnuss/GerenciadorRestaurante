@@ -36,6 +36,7 @@ namespace backend.Controllers
                      .ToListAsync();
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<ActionResult<Order>> Create([FromBody] CreateOrderRequest req)
         {
             if (req.Items == null || !req.Items.Any())
@@ -84,7 +85,30 @@ namespace backend.Controllers
             return CreatedAtAction(nameof(GetAll), new { id = order.Id }, createdOrder);
         }
 
+        [HttpPost("next")]
+        [AllowAnonymous]
+        public async Task<ActionResult<Order>> GetNextOrderInQueue()
+        {
+            var order = await _db.Orders
+                .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Product)
+                .Where(o => o.Status == "Recebido")
+                .OrderBy(o => o.OrderDate)
+                .FirstOrDefaultAsync();
+
+            if (order == null)
+            {
+                return NotFound("Nenhum pedido na fila.");
+            }
+
+            order.Status = "Em Preparo";
+            await _db.SaveChangesAsync();
+
+            return Ok(order);
+        }
+
         [HttpPut("{id:int}/ready")]
+        [AllowAnonymous]
         public async Task<IActionResult> MarkReady(int id)
         {
             var order = await _db.Orders.FindAsync(id);

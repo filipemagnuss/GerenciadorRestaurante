@@ -3,14 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// EF Core + SQLite
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=app.db"));
 
-// JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -27,7 +26,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// Adiciona CORS
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -38,14 +37,16 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Inicialização e seeding do banco de dados antes de executar o servidor
-// Adiciona um bloco try-catch para lidar com erros de inicialização do DB e seed
 try
 {
     using (var scope = app.Services.CreateScope())
@@ -57,19 +58,16 @@ try
 }
 catch (Exception ex)
 {
-    // Loga o erro, mas continua a execução da aplicação
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
     logger.LogError(ex, "Ocorreu um erro ao popular o banco de dados. A aplicação será executada, mas pode não funcionar como esperado.");
 }
 
-// Swagger apenas no desenvolvimento
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// Usa CORS
 app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
