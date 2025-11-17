@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from 'react-router-dom'; // 1. Importar o useNavigate
+import { useNavigate } from 'react-router-dom';
 
 const BASE_URL = 'http://localhost:5197';
 
@@ -9,7 +9,7 @@ export default function Menu() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   
-  const navigate = useNavigate(); // 2. Instanciar o hook
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchMenuData = async () => {
@@ -23,8 +23,8 @@ export default function Menu() {
           const categoriesData = await categoriesRes.json();
           const productsData = await productsRes.json();
           
-          setCategories(categoriesData);
-          setProducts(productsData);
+          setCategories(categoriesData.$values || categoriesData);
+          setProducts(productsData.$values || productsData);
         } else {
           setError("Erro ao carregar dados do cardápio");
         }

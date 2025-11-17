@@ -24,8 +24,8 @@ export default function ManageMenu() {
         if (categoriesRes.ok && productsRes.ok) {
           const categoriesData = await categoriesRes.json();
           const productsData = await productsRes.json();
-          setCategories(categoriesData);
-          setProducts(productsData);
+          setCategories(categoriesData.$values || categoriesData);
+          setProducts(productsData.$values || productsData);
         } else {
           setError("Erro ao carregar dados do cardápio");
         }
@@ -79,10 +79,9 @@ export default function ManageMenu() {
     <div className="min-h-screen bg-[#F0F5F0] p-8">
       <div className="max-w-6xl mx-auto">
         
-        {/* --- BOTÃO VOLTAR ADICIONADO --- */}
         <div className="mb-4">
           <button
-            onClick={() => navigate('/admin/create-product')} // Volta para o Dashboard
+            onClick={() => navigate('/admin/create-product')}
             className="flex items-center text-[#588157] font-semibold hover:text-[#4A724A] transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -91,7 +90,6 @@ export default function ManageMenu() {
             Voltar
           </button>
         </div>
-        {/* --- FIM DA ADIÇÃO --- */}
 
         <h1 className="text-4xl font-bold text-center mb-12 text-[#588157]">
           Gerenciar Cardápio

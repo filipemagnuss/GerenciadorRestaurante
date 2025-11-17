@@ -33,7 +33,7 @@ export default function CreateProductForm() {
             'Authorization': `Bearer ${authToken}` 
           },
         });
-        setCategories(response.data);
+        setCategories(response.data.$values || response.data);
       } catch (err) {
         setError('Erro ao carregar categorias.');
         console.error('Erro ao carregar categorias:', err);
@@ -97,8 +97,7 @@ export default function CreateProductForm() {
 
         <div className="flex justify-between items-center mb-4">
           <button
-            // --- ALTERAÇÃO AQUI ---
-            onClick={() => navigate('/admin')} // Navega para o Admin Dashboard
+            onClick={() => navigate('/admin')}
             className="flex items-center text-[#588157] font-semibold hover:text-[#4A724A] transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
