@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate, useParams } from 'react-router-dom'; // Importa o useParams
+import { useNavigate, useParams } from 'react-router-dom';
 
 const API_BASE_URL = 'http://localhost:5197'; 
 
@@ -17,16 +17,14 @@ export default function EditProduct() {
   const [success, setSuccess] = useState(null);
 
   const navigate = useNavigate();
-  const { id } = useParams(); // Pega o 'id' da URL (ex: /admin/edit-product/5)
+  const { id } = useParams();
   const authToken = localStorage.getItem('authToken');
 
-  // 1. Busca as categorias (igual ao CreateMenu)
   useEffect(() => {
     const fetchCategories = async () => {
-      // O GET de categorias é público
       try {
         const response = await axios.get(`${API_BASE_URL}/api/Categories`);
-        setCategories(response.data);
+        setCategories(response.data.$values || response.data);
       } catch (err) {
         setError('Erro ao carregar categorias.');
       }
@@ -34,21 +32,18 @@ export default function EditProduct() {
     fetchCategories();
   }, []); 
 
-  // 2. Busca os dados DO PRODUTO específico para preencher o formulário
   useEffect(() => {
-    if (!id) return; // Não faz nada se não tiver ID
+    if (!id) return;
 
     const fetchProductData = async () => {
       setLoading(true);
       try {
-        // O GET de produto é público
         const response = await axios.get(`${API_BASE_URL}/api/Products/${id}`);
         const product = response.data;
         
-        // Preenche o formulário com os dados do produto
         setFormData({
           name: product.name,
-          description: product.description || '', // || '' para evitar 'undefined'
+          description: product.description || '',
           price: product.price,
           categoryId: product.category.id,
         });
@@ -60,7 +55,7 @@ export default function EditProduct() {
     };
 
     fetchProductData();
-  }, [id]); // Roda sempre que o ID da URL mudar
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -70,7 +65,6 @@ export default function EditProduct() {
     }));
   };
 
-  // 3. Altera o handleSubmit para usar PUT (Atualizar)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -91,7 +85,6 @@ export default function EditProduct() {
     };
 
     try {
-      // MUDOU DE POST PARA PUT e inclui o ID na URL
       await axios.put(`${API_BASE_URL}/api/Products/${id}`, productData, {
         headers: {
           'Content-Type': 'application/json',
@@ -101,10 +94,9 @@ export default function EditProduct() {
       
       setSuccess(`Produto "${formData.name}" atualizado com sucesso!`);
       
-      // Opcional: Redireciona de volta ao menu de gerenciamento
       setTimeout(() => {
         navigate('/admin/menu');
-      }, 1500); // Espera 1.5s para o admin ver a msg de sucesso
+      }, 1500);
 
     } catch (err) {
       setError('Erro ao atualizar o produto.');
@@ -119,7 +111,7 @@ export default function EditProduct() {
         
         <div className="flex justify-between items-center mb-4">
           <button
-            onClick={() => navigate('/admin/menu')} // Volta para o menu de gerenciamento
+            onClick={() => navigate('/admin/menu')}
             className="flex items-center text-[#588157] font-semibold hover:text-[#4A724A] transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -129,7 +121,6 @@ export default function EditProduct() {
           </button>
         </div>
 
-        {/* TÍTULO MUDADO */}
         <h2 className="mb-6 text-center text-3xl font-bold text-[#588157]">Editar Produto</h2>
         <form onSubmit={handleSubmit} className="space-y-6">
 
@@ -202,7 +193,6 @@ export default function EditProduct() {
           {success && <p className="text-center font-semibold text-green-600">{success}</p>}
 
           <div className="pt-4">
-            {/* TEXTO DO BOTÃO MUDADO */}
             <button
               type="submit"
               disabled={loading}
