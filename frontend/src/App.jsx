@@ -9,6 +9,7 @@ import Menu from "./pages/Menu.jsx";
 import AtendenteMenu from "./pages/AtendenteMenu.jsx";
 import ManageMenu from "./pages/ManageMenu.jsx";
 import EditProduct from "./pages/EditProduct.jsx";
+import OrdersDisplay from "./pages/OrdersDisplay.jsx";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/register" element={<CreateAdmin />} />
         <Route path="/atendente/menu" element={<AtendenteMenu />} />
         <Route path="/menu" element={<Menu />} />
+        <Route path="/painel" element={<OrdersDisplay />} />
         
         
         <Route element={<PrivateRoute allowedRoles={["Admin"]} />}>

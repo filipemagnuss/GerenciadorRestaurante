@@ -27,6 +27,7 @@ namespace backend.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IEnumerable<Order>> GetAll() =>
             await _db.Orders
                      .Include(o => o.OrderItems)
