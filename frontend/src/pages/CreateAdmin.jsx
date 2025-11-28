@@ -44,13 +44,14 @@ export default function CreateAdmin() {
           navigate("/login");
         }
       } else {
+        const responseText = await registerResponse.text();
         let errorText;
+        
         try {
-          const errorData = await registerResponse.json();
+          const errorData = JSON.parse(responseText);
           errorText = errorData.message || 'Erro ao criar o administrador!';
         } catch (jsonError) {
-          errorText = await registerResponse.text();
-          errorText = errorText || 'Erro ao criar o administrador!';
+          errorText = responseText || 'Erro ao criar o administrador!';
         }
         setErrorMessage(errorText);
       }

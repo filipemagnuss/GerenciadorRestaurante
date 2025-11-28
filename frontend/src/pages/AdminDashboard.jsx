@@ -1,17 +1,65 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+const BASE_URL = 'http://localhost:5197';
 
 export default function AdminDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
+  
+  // Inicializamos com arrays vazios e valores zerados para evitar erros de renderização
+  const [stats, setStats] = useState({
+    ordersInProgress: 0,
+    todayRevenue: 0,
+    itemsSoldToday: 0,
+    topSellers: []
+  });
+  
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const mockOrdersCount = 3;
-  const mockTopSellers = {
-    bebidas: { nome: 'Suco de Laranja', vendidos: 120 },
-    lanches: { nome: 'Hambúrguer Clássico', vendidos: 95 },
-    refeicoes: { nome: 'Salmão Grelhado', vendidos: 78 },
-  };
+  const mockOrdersCount = 3; // Mantido caso queira usar como fallback visual
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+          navigate('/login');
+          return;
+      }
+
+      try {
+        const response = await fetch(`${BASE_URL}/api/Admin/stats`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            
+            // CORREÇÃO PRINCIPAL:
+            // O backend .NET pode retornar listas dentro de "$values" devido ao ReferenceHandler.Preserve.
+            // Aqui normalizamos isso para garantir que topSellers seja sempre um array.
+            const safeTopSellers = data.topSellers?.$values || data.topSellers || [];
+
+            setStats({
+                ordersInProgress: data.ordersInProgress || 0,
+                todayRevenue: data.todayRevenue || 0,
+                itemsSoldToday: data.itemsSoldToday || 0,
+                topSellers: safeTopSellers
+            });
+        } else {
+            console.error("Falha ao carregar estatísticas");
+        }
+      } catch (error) {
+        console.error("Erro de conexão:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem('authToken');
@@ -26,6 +74,19 @@ export default function AdminDashboard() {
   const handleViewMenu = () => {
     navigate('/menu');
   };
+
+  // Função auxiliar segura para buscar o item mais vendido
+  const getTopSeller = (categoryName) => {
+      if (!stats.topSellers || !Array.isArray(stats.topSellers)) {
+          return { nome: '-', vendidos: 0 };
+      }
+      const item = stats.topSellers.find(s => s.category?.toLowerCase() === categoryName.toLowerCase());
+      return item || { nome: '-', vendidos: 0 };
+  };
+
+  const topBebidas = getTopSeller('Bebidas');
+  const topLanches = getTopSeller('Lanches');
+  const topRefeicoes = getTopSeller('Refeições');
 
   return (
     <div className="flex min-h-screen bg-[#F0F5F0] overflow-hidden font-inter">
@@ -81,68 +142,76 @@ export default function AdminDashboard() {
         <div className="p-8">
           <h1 className="text-4xl font-bold text-[#588157] mb-8">Painel do Administrador</h1>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Card de Pedidos em Andamento */}
-            <div className="bg-white p-6 rounded-2xl shadow-lg flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-[#2C5234] mb-2">Pedidos em Andamento</h2>
-                <p className="text-4xl font-bold text-[#588157]">{mockOrdersCount}</p>
-              </div>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#99B299]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6M8 12h8M8 16h8"></path></svg>
+          {loading ? (
+             <p className="text-[#588157]">Carregando estatísticas...</p>
+          ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Card de Pedidos em Andamento */}
+                <div className="bg-white p-6 rounded-2xl shadow-lg flex items-center justify-between">
+                <div>
+                    <h2 className="text-xl font-semibold text-[#2C5234] mb-2">Pedidos em Andamento</h2>
+                    <p className="text-4xl font-bold text-[#588157]">{stats.ordersInProgress}</p>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#99B299]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6M8 12h8M8 16h8"></path></svg>
+                </div>
+
+                {/* Card de Faturamento */}
+                <div className="bg-white p-6 rounded-2xl shadow-lg flex items-center justify-between">
+                <div>
+                    <h2 className="text-xl font-semibold text-[#2C5234] mb-2">Faturamento de hoje</h2>
+                    <p className="text-4xl font-bold text-[#588157]">
+                        {stats.todayRevenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    </p>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#99B299]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                </div>
+                
+                {/* Card de Itens Vendidos */}
+                <div className="bg-white p-6 rounded-2xl shadow-lg flex items-center justify-between">
+                <div>
+                    <h2 className="text-xl font-semibold text-[#2C5234] mb-2">Itens vendidos</h2>
+                    <p className="text-4xl font-bold text-[#588157]">{stats.itemsSoldToday}</p>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#99B299]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 8l4 4-4 4M8 12h8"></path></svg>
+                </div>
             </div>
 
-            {/* Card de Faturamento */}
-            <div className="bg-white p-6 rounded-2xl shadow-lg flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-[#2C5234] mb-2">Faturamento de hoje</h2>
-                <p className="text-4xl font-bold text-[#588157]">R$ 350,00</p>
-              </div>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#99B299]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            {/* Itens mais vendidos */}
+            <h2 className="text-2xl font-bold text-[#588157] mt-8 mb-6">Mais vendidos (Geral)</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Bebidas Mais Vendidas */}
+                <div className="bg-white p-6 rounded-2xl shadow-lg flex items-center justify-between">
+                <div>
+                    <h3 className="text-xl font-semibold text-[#2C5234] mb-2">Bebidas</h3>
+                    <p className="text-2xl font-bold text-[#588157]">{topBebidas.nome}</p>
+                    <p className="text-md text-gray-500">{topBebidas.vendidos} vendidos</p>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#99B299]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 10c0 4.418 3.582 8 8 8s8-3.582 8-8v-8H6v8z"></path><path d="M12 18a8 8 0 0 0 8-8"></path><path d="M14 11V3"></path><path d="M10 11V3"></path></svg>
+                </div>
+                
+                {/* Lanches Mais Vendidos */}
+                <div className="bg-white p-6 rounded-2xl shadow-lg flex items-center justify-between">
+                <div>
+                    <h3 className="text-xl font-semibold text-[#2C5234] mb-2">Lanches</h3>
+                    <p className="text-2xl font-bold text-[#588157]">{topLanches.nome}</p>
+                    <p className="text-md text-gray-500">{topLanches.vendidos} vendidos</p>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#99B299]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 15a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"></path></svg>
+                </div>
+                
+                {/* Refeições Mais Vendidas */}
+                <div className="bg-white p-6 rounded-2xl shadow-lg flex items-center justify-between">
+                <div>
+                    <h3 className="text-xl font-semibold text-[#2C5234] mb-2">Refeições</h3>
+                    <p className="text-2xl font-bold text-[#588157]">{topRefeicoes.nome}</p>
+                    <p className="text-md text-gray-500">{topRefeicoes.vendidos} vendidos</p>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#99B299]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6M8 12h8M8 16h8"></path></svg>
+                </div>
             </div>
-            
-            {/* Card de Itens Vendidos */}
-            <div className="bg-white p-6 rounded-2xl shadow-lg flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-[#2C5234] mb-2">Itens vendidos</h2>
-                <p className="text-4xl font-bold text-[#588157]">45</p>
-              </div>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#99B299]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 8l4 4-4 4M8 12h8"></path></svg>
-            </div>
-          </div>
-
-          {/*itens*/}
-          <h2 className="text-2xl font-bold text-[#588157] mt-8 mb-6">Itens mais vendidos</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Bebidas Mais Vendidas */}
-            <div className="bg-white p-6 rounded-2xl shadow-lg flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-semibold text-[#2C5234] mb-2">Bebidas</h3>
-                <p className="text-2xl font-bold text-[#588157]">{mockTopSellers.bebidas.nome}</p>
-                <p className="text-md text-gray-500">{mockTopSellers.bebidas.vendidos} vendidos</p>
-              </div>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#99B299]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 10c0 4.418 3.582 8 8 8s8-3.582 8-8v-8H6v8z"></path><path d="M12 18a8 8 0 0 0 8-8"></path><path d="M14 11V3"></path><path d="M10 11V3"></path></svg>
-            </div>
-            
-            {/* Lanches Mais Vendidos */}
-            <div className="bg-white p-6 rounded-2xl shadow-lg flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-semibold text-[#2C5234] mb-2">Lanches</h3>
-                <p className="text-2xl font-bold text-[#588157]">{mockTopSellers.lanches.nome}</p>
-                <p className="text-md text-gray-500">{mockTopSellers.lanches.vendidos} vendidos</p>
-              </div>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#99B299]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 15a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"></path></svg>
-            </div>
-            
-            {/* Refeições Mais Vendidas */}
-            <div className="bg-white p-6 rounded-2xl shadow-lg flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-semibold text-[#2C5234] mb-2">Refeições</h3>
-                <p className="text-2xl font-bold text-[#588157]">{mockTopSellers.refeicoes.nome}</p>
-                <p className="text-md text-gray-500">{mockTopSellers.refeicoes.vendidos} vendidos</p>
-              </div>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#99B299]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6M8 12h8M8 16h8"></path></svg>
-            </div>
-          </div>
+          </>
+          )}
         </div>
       </main>
     </div>
