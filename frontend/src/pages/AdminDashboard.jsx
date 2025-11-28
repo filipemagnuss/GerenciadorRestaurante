@@ -6,7 +6,7 @@ const BASE_URL = 'http://localhost:5197';
 export default function AdminDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
-  // Inicializamos com arrays vazios e valores zerados para evitar erros de renderização
+
   const [stats, setStats] = useState({
     ordersInProgress: 0,
     todayRevenue: 0,
@@ -17,7 +17,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const mockOrdersCount = 3; // Mantido caso queira usar como fallback visual
+  const mockOrdersCount = 3; 
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -37,9 +37,6 @@ export default function AdminDashboard() {
         if (response.ok) {
             const data = await response.json();
             
-            // CORREÇÃO PRINCIPAL:
-            // O backend .NET pode retornar listas dentro de "$values" devido ao ReferenceHandler.Preserve.
-            // Aqui normalizamos isso para garantir que topSellers seja sempre um array.
             const safeTopSellers = data.topSellers?.$values || data.topSellers || [];
 
             setStats({
@@ -75,7 +72,6 @@ export default function AdminDashboard() {
     navigate('/menu');
   };
 
-  // Função auxiliar segura para buscar o item mais vendido
   const getTopSeller = (categoryName) => {
       if (!stats.topSellers || !Array.isArray(stats.topSellers)) {
           return { nome: '-', vendidos: 0 };
@@ -118,9 +114,9 @@ export default function AdminDashboard() {
               isSidebarOpen ? 'justify-start space-x-4' : 'justify-center'
             }`}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a10 10 0 0 0-9.95 9h-2.05a12 12 0 1 1 12 12V2z"></path></svg>
+           <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 11h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-10a1 1 0 0 1 1-1zm0 0V4a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v7m-13 4h10m-10 4h10"></path></svg>
             <span className={`transition-opacity duration-150 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 absolute left-24'}`}>
-              Visualizar Cardápio
+              Criar Cardápio
             </span>
           </button>
         </nav>

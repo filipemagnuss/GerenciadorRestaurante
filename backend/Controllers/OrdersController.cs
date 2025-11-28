@@ -146,7 +146,7 @@ namespace backend.Controllers
                 var lines = new List<object>();
 
            
-                lines.Add(new { type = "text", text = "Crepe do Mestre", font_size = 2, align = "center", bold = true });
+                lines.Add(new { type = "text", text = "Maestro", font_size = 2, align = "center", bold = true });
                 lines.Add(new { type = "text", text = "--------------------------------", align = "center" });
                 lines.Add(new { type = "text", text = $"Cliente: {order.CustomerName}", align = "left" });
 
